@@ -1,0 +1,1423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <title>Quik Invoice</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="description" content="Quik Invoice - A free and open-source tool for creating professional invoices, receipts, and quotes.">
+    <meta name="keywords" content="invoice, receipt, quote, free invoice tool, open-source invoice, professional invoice, Quik Invoice">
+    <meta name="author" content="Kwaku Amoh-aboagye">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="Quik Invoice - Free Invoice Tool">
+    <meta property="og:description" content="Create professional invoices, receipts, and quotes with Quik Invoice. Free and open-source.">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Quik Invoice - Free Invoice Tool">
+    <meta name="twitter:description" content="Create professional invoices, receipts, and quotes with Quik Invoice. Free and open-source.">
+   
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/themes/classic.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icons/6.11.0/css/flag-icons.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        @page {
+            size: A4;
+            margin: 0; /* Remove browser default print margins */
+        }
+        
+        @media print {
+            html, body {
+                width: 210mm;
+                height: 297mm;
+                margin: 0;
+                padding: 0;
+                background: white;
+            }
+        
+            .no-print {
+                display: none !important;
+            }
+        
+            .container {
+                width: 100%;
+                height: 100%;
+                margin: 0 !important;
+                padding: 0 !important;
+                box-shadow: none !important;
+                border: none;
+                page-break-inside: avoid;
+            }
+            div{
+                box-shadow: none !important;
+
+            }
+            .template-2 .header-bg,
+            .template-3 .sidebar-bg {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+        }
+        
+        .editable {
+            min-height: 1.5em;
+            border: 1px dashed transparent;
+            padding: 2px;
+        }
+        .editable:hover {
+            border-color: #afa3a3;
+        }
+        .editable:focus {
+            border-color: var(--primary-color);
+            outline: none;
+            background: #bbb9b9;
+        }
+        #logoPreview {
+            max-width: 200px;
+            max-height: 80px;
+            object-fit: contain;
+        }
+        :root {
+            --primary-color: #0E336E;
+            --primary-hover: #2563eb;
+            --font-family: 'Inter', sans-serif;
+        }
+        body {
+            font-family: var(--font-family);
+        }
+        .primary-bg {
+            background-color: var(--primary-color);
+        }
+        .primary-hover:hover {
+            background-color: var(--primary-hover);
+        }
+        .primary-text {
+            color: var(--primary-color);
+        }
+        .template-2 .header-bg {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem 0.5rem 0 0;
+        }
+        .template-3 {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 1.5rem;
+        }
+        .template-3 .sidebar-bg {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 0.5rem 0 0 0.5rem;
+        }
+        .template-3 .main-content {
+            padding: 1.5rem 1.5rem 1.5rem 0;
+        }
+        .pickr .pcr-button {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+        }
+        @media (max-width: 768px) {
+            .desktop-style {
+                transform: scale(0.5);
+                transform-origin: top left;
+                width: 200%; /* Inverse of scale to maintain layout space */
+                margin-bottom: -550px;
+              }
+            .mobile-only {
+                display: block !important;
+            }
+
+        }
+        @media (min-width: 768px) {
+            .mobile-only {
+                display: none !important;
+            }
+
+        }
+        
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto:wght@400;500&family=Open+Sans:wght@400;600&family=Montserrat:wght@500;600&family=Poppins:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body class="p-4 md:p-8">
+    <h1 class="text-gray-800 text-center text-4xl no-print">Quik Invoice</h1>
+    <!-- Settings Panel -->
+    <div class="no-print mb-4 p-4 bg-white rounded-lg shadow-md max-w-3xl mx-auto">
+        
+     
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-2">
+            <!-- Document Type -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Document Type</label>
+                <select id="documentType" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="INVOICE">Invoice</option>
+                    <option value="RECEIPT">Receipt</option>
+                    <option value="QUOTE">Quote</option>
+                </select>
+            </div>
+            
+            <!-- Template Selector -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Independent Template</label>
+                <select id="templateSelect" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="template-1">Template 1 (Default)</option>
+                    <option value="template-2">Template 2</option>
+                    <option value="template-3">Template 3</option>
+                </select>
+            </div>
+            
+            <!-- Font Selector -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Font</label>
+                <select id="fontSelect" class="w-full border rounded px-3 py-2 text-sm">
+                    <option value="'Inter', sans-serif" style="font-family: 'Inter'">Inter</option>
+                    <option value="'Roboto', sans-serif" style="font-family: 'Roboto'">Roboto</option>
+                    <option value="'Open Sans', sans-serif" style="font-family: 'Open Sans'">Open Sans</option>
+                    <option value="'Montserrat', sans-serif" style="font-family: 'Montserrat'">Montserrat</option>
+                    <option value="'Poppins', sans-serif" style="font-family: 'Poppins'">Poppins</option>
+                    <option value="'Dancing Script', cursive" style="font-family: 'Dancing Script'">Dancing Script</option>
+                    <option value="'Lobster', cursive" style="font-family: 'Lobster'">Lobster</option>
+                    <option value="'Playfair Display', serif" style="font-family: 'Playfair Display'">Playfair Display</option>
+                    <option value="'Raleway', sans-serif" style="font-family: 'Raleway'">Raleway</option>
+                    <option value="'Roboto Condensed', sans-serif" style="font-family: 'Roboto Condensed'">Roboto Condensed</option>
+               
+                </select>
+            </div>
+            
+            <!-- Color Picker -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Colour</label>
+                <div class="flex items-center justify-between">
+                    <div id="colorPicker" class="mr-3"></div>
+                    <div class="flex items-bottom justify-center">
+                        <button id="resetAll" class="bg-red-600 text-white px-3 py-1 rounded text-xs">Reset</button>
+                    </div>
+                    
+                </div>
+            </div>
+            
+        </div>
+    </div>
+    <p class="text-center mobile-only text-gray-400 text-xs">Zoom to edit</p>
+    <div class="desktop-style">
+    <!-- Template 1 (Default) -->
+    <div id="invoiceContainer" class="container mx-auto bg-white rounded-lg shadow-md p-6 max-w-3xl template-1">
+        <!-- Header Section -->
+        <div class="flex justify-between items-start mb-8">
+            <div class="w-2/3">
+                <h1 class="text-3xl font-bold editable primary-text" contenteditable="true" id="documentTitle">INVOICE</h1>
+                <div class="mt-4 space-y-1 editable" contenteditable="true" id="companyInfo">
+                    <div class="text-xl font-semibold">COMPANY NAME</div>
+                    <div>Address</div>
+                    <div>www.example.com</div>
+                    <div>info@example.com</div>
+                    <div>(+123) 456-7890</div>
+                </div>
+            </div>
+            
+            <!-- Logo Upload Section -->
+            <div class="flex flex-col items-end overflow-x-auto">
+                <div class="mb-4 no-print">
+                    <input type="file" id="logoUpload" accept="image/*" class="hidden">
+                    <div class="grid md:flex items-center gap-2">
+                        <button onclick="document.getElementById('logoUpload').click()" class="primary-bg primary-hover text-white px-3 py-1 rounded text-xs">
+                            Upload Logo
+                        </button>
+                        <button onclick="removeLogo('logoPreview')" class="ml-2 bg-gray-300 hover:bg-gray-400 text-gray-800 px-3 py-1 rounded text-xs ">
+                            Remove Logo
+                        </button>
+                    </div>
+                </div>
+                <img id="logoPreview" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAyMDAgODAiIGZpbGw9IiNlNWU1ZTUiPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiPkxvZ28gUHJldmlldzwvdGV4dD48L3N2Zz4=" alt="" class="border border-gray-200">
+            </div>
+        </div>
+
+        <!-- Invoice Meta Data -->
+        <div class="flex justify-between mb-8">
+            <div class="w-1/2 editable" contenteditable="true" id="clientInfo">
+                <h2 class="text-xl font-semibold">To:</h2>
+                <div>Client Name<br>Client Address<br>City, Country</div>
+            </div>
+            
+            <div class="w-1/2 overflow-x-auto">
+                <table class="w-full">
+                    <tr>
+                        <td class="py-1 font-medium">#</td>
+                        <td class="py-1"><span class="editable" contenteditable="true" id="documentNumber">INV-001</span></td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 font-medium">Date</td>
+                        <td class="py-1"><span class="editable" contenteditable="true" id="invoiceDate"></span></td>
+                    </tr>
+                    <tr class="no-print">
+                        <td class="py-1 font-medium">Currency</td>
+                        <td class="py-1">
+                            <select id="currencySelect" class="border rounded px-2 py-1 text-sm">
+                                <option value="GHS">GHS (Ghanaian Cedi)</option>
+                                <option value="$">USD (US Dollar)</option>
+                                <option value="€">EUR (Euro)</option>
+                                <option value="£">GBP (British Pound)</option>
+                                <option value="¥">JPY (Japanese Yen)</option>
+                                <option value="₦">NGN (Nigerian Naira)</option>
+                                <option value="₹">INR (Indian Rupee)</option>
+                                <option value="Custom">Custom</option>
+                            </select>
+                            <input type="text" id="customCurrency" class="border rounded px-2 py-1 text-sm hidden no-print" placeholder="Custom symbol">
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="py-1 font-medium">Amount Due</td>
+                        <td class="py-1"><span class="font-medium" id="amountDue">GHS0.00</span></td>
+                    </tr>
+                </table>
+            </div>
+        </div>
+
+        <!-- Invoice Items Table -->
+        <div class="mb-8 overflow-x-auto">
+            <table class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-100">
+                        <th class="py-2 px-4 text-left border">Item</th>
+                        <th class="py-2 px-4 text-left border">Description</th>
+                        <th class="py-2 px-4 text-left border">Unit Cost</th>
+                        <th class="py-2 px-4 text-left border">Quantity</th>
+                        <th class="py-2 px-4 text-left border">Price</th>
+                        <th class="border no-print"></th>
+                    </tr>
+                </thead>
+                <tbody id="itemsTable">
+                    <!-- Initial empty row -->
+                    <tr class="item-row border-b">
+                        <td class="py-2 px-4 border"><div class="flex items-center"><span class="editable" contenteditable="true">Item Name</span></div></td>
+                        <td class="py-2 px-4 border"><span class="editable" contenteditable="true">Item description</span></td>
+                        <td class="py-2 px-4 border"><span class="editable cost" contenteditable="true">0.00</span></td>
+                        <td class="py-2 px-4 border"><span class="editable qty" contenteditable="true">1</span></td>
+                        <td class="py-2 px-4 border price">0.00</td>
+                        <td class="py-2 px-4 border no-print"><button class="text-red-500 hover:text-red-700 remove-row">×</button></td>
+                    </tr>
+                </tbody>
+            </table>
+            <button id="addRowBtn" class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 px-3 py-1 rounded text-sm no-print">+ Add Row</button>
+        </div>
+
+        <!-- Totals Section -->
+        <div class="ml-auto w-64">
+            <div class="flex justify-between py-2 border-b">
+                <span class="font-medium">Subtotal</span>
+                <span id="subtotal">0.00</span>
+            </div>
+            
+            <div class="flex justify-between py-2 border-b">
+                <div class="flex items-center">
+                    <span class="font-medium editable" contenteditable="true" id="taxLabel">TAX</span>
+                    <span class="ml-1">(<span class="editable" contenteditable="true" id="taxRate">15</span>%)</span>
+                    <button onclick="toggleTax()" class="ml-2 text-gray-500 hover:text-gray-700 text-xs no-print">×</button>
+                </div>
+                <span id="taxAmount">0.00</span>
+            </div>
+            
+            <div class="flex justify-between py-2 border-b">
+                <div class="flex items-center">
+                    <span class="font-medium editable" contenteditable="true" id="discountLabel">Discount</span>
+                    <span class="ml-1">(<span class="editable" contenteditable="true" id="discountRate">0</span>%)</span>
+                    <button onclick="toggleDiscount()" class="ml-2 text-gray-500 hover:text-gray-700 text-xs no-print">×</button>
+                </div>
+                <span id="discountAmount">0.00</span>
+            </div>
+            
+            <div class="flex justify-between py-2 border-b font-bold">
+                <span>Total</span>
+                <span id="total">0.00</span>
+            </div>
+            <div class="flex justify-between py-2 border-b">
+                <span class="font-medium">Amount Paid</span>
+                <span><span class="editable" contenteditable="true" id="amountPaid">0.00</span></span>
+            </div>
+            <div class="flex justify-between py-2 font-bold primary-text">
+                <span>Balance Due</span>
+                <span id="balanceDue">0.00</span>
+            </div>
+        </div>
+
+        <!-- Signature and Actions -->
+        <div class="mt-12 pt-4 border-t flex justify-between items-end">
+            <div>
+                <!-- <div class="h-20 border-b border-gray-400 w-48 mb-1"></div> -->
+                <!-- <span class="text-sm text-gray-600">Authorized Signature</span> -->
+            </div>
+            <div class="no-print">
+                <button onclick="window.print()" class="primary-bg primary-hover text-white px-4 py-2 rounded">
+                    Print/Download
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template 2 (Header) - Hidden by default -->
+    <div id="template-2" class="container mx-auto bg-white rounded-lg shadow-md overflow-hidden max-w-3xl template-2 hidden">
+        <!-- Header Section with Color Background -->
+        <div class="header-bg">
+            <div class="flex justify-between items-center p-6">
+                <div>
+                    <h1 class="text-3xl font-bold text-white editable" contenteditable="true" id="documentTitle-2">INVOICE</h1>
+                </div>
+                
+                <!-- Logo Upload Section -->
+                <div class="flex flex-col items-end">
+                    <div class="mb-4 no-print">
+                        <input type="file" id="logoUpload-2" accept="image/*" class="hidden">
+                        <button onclick="document.getElementById('logoUpload-2').click()" class="bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded text-sm">
+                            Upload Logo
+                        </button>
+                        <button onclick="removeLogo('logoPreview-2')" class="ml-2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-1 rounded text-sm">
+                            Remove Logo
+                        </button>
+                    </div>
+                    <img id="logoPreview-2" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCAxNTAgNjAiIGZpbGw9IiNlNWU1ZTUiPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiPkxvZ28gUHJldmlldzwvdGV4dD48L3N2Zz4=" alt="" class="border border-white border-opacity-30 w-20 rounded">
+                </div>
+            </div>
+        </div>
+
+        <!-- Company Info Below Header -->
+        <div class="p-6 pt-4">
+            <div class="mb-6 space-y-1 editable" contenteditable="true" id="companyInfo-2">
+                <div class="text-xl font-semibold">COMPANY NAME</div>
+                <div>Address</div>
+                <div>www.example.com</div>
+                <div>info@example.com</div>
+                <div>(+123) 456-7890</div>
+            </div>
+
+            <!-- Invoice Meta Data -->
+            <div class="flex justify-between mb-8">
+                <div class="w-1/2 editable" contenteditable="true" id="clientInfo-2">
+                    <h2 class="text-xl font-semibold">To:</h2>
+                    <div>Client Name<br>Client Address<br>City, Country</div>
+                </div>
+                
+                <div class="w-1/2 overflow-x-auto">
+                    <table class="w-full">
+                        <tr>
+                            <td class="py-1 font-medium">#</td>
+                            <td class="py-1"><span class="editable" contenteditable="true" id="documentNumber-2">INV-001</span></td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-medium">Date</td>
+                            <td class="py-1"><span class="editable" contenteditable="true" id="invoiceDate-2"></span></td>
+                        </tr>
+                        <tr class="no-print">
+                            <td class="py-1 font-medium">Currency</td>
+                            <td class="py-1">
+                                <select id="currencySelect-2" class="border rounded px-2 py-1 text-sm">
+                                    <option value="GHS">GHS (Ghanaian Cedi)</option>
+                                    <option value="$">USD (US Dollar)</option>
+                                    <option value="€">EUR (Euro)</option>
+                                    <option value="£">GBP (British Pound)</option>
+                                    <option value="¥">JPY (Japanese Yen)</option>
+                                    <option value="₦">NGN (Nigerian Naira)</option>
+                                    <option value="₹">INR (Indian Rupee)</option>
+                                    <option value="Custom">Custom</option>
+                                </select>
+                                <input type="text" id="customCurrency-2" class="border rounded px-2 py-1 text-sm hidden no-print" placeholder="Custom symbol">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="py-1 font-medium">Amount Due</td>
+                            <td class="py-1"><span class="font-medium" id="amountDue-2">GHS0.00</span></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Invoice Items Table -->
+            <div class="mb-8 overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="primary-bg text-white">
+                            <th class="py-3 px-4 text-left border border-white border-opacity-20">Item</th>
+                            <th class="py-3 px-4 text-left border border-white border-opacity-20">Description</th>
+                            <th class="py-3 px-4 text-left border border-white border-opacity-20">Unit Cost</th>
+                            <th class="py-3 px-4 text-left border border-white border-opacity-20">Quantity</th>
+                            <th class="py-3 px-4 text-left border border-white border-opacity-20">Price</th>
+                            <th class="border border-white border-opacity-20 no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsTable-2">
+                        <!-- Initial empty row -->
+                        <tr class="item-row border-b">
+                            <td class="py-3 px-4 border"><div class="flex items-center"><span class="editable" contenteditable="true">Item Name</span></div></td>
+                            <td class="py-3 px-4 border"><span class="editable" contenteditable="true">Item description</span></td>
+                            <td class="py-3 px-4 border"><span class="editable cost" contenteditable="true">0.00</span></td>
+                            <td class="py-3 px-4 border"><span class="editable qty" contenteditable="true">1</span></td>
+                            <td class="py-3 px-4 border price">0.00</td>
+                            <td class="py-3 px-4 border no-print"><button class="text-red-500 hover:text-red-700 remove-row">×</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button id="addRowBtn-2" class="mt-2 primary-bg primary-hover text-white px-3 py-1 rounded text-sm no-print">+ Add Row</button>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="ml-auto w-64">
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">Subtotal</span>
+                    <span id="subtotal-2">0.00</span>
+                </div>
+                
+                <div class="flex justify-between py-2 border-b">
+                    <div class="flex items-center">
+                        <span class="font-medium editable" contenteditable="true" id="taxLabel-2">TAX</span>
+                        <span class="ml-1">(<span class="editable" contenteditable="true" id="taxRate-2">15</span>%)</span>
+                        <!-- <button onclick="toggleTax('2')" class="ml-2 text-gray-500 hover:text-gray-700 text-xs no-print">×</button> -->
+                    </div>
+                    <span id="taxAmount-2">0.00</span>
+                </div>
+                
+                <div class="flex justify-between py-2 border-b">
+                    <div class="flex items-center">
+                        <span class="font-medium editable" contenteditable="true" id="discountLabel-2">Discount</span>
+                        <span class="ml-1">(<span class="editable" contenteditable="true" id="discountRate-2">0</span>%)</span>
+                        <button onclick="toggleDiscount('2')" class="ml-2 text-gray-500 hover:text-gray-700 text-xs no-print">×</button>
+                    </div>
+                    <span id="discountAmount-2">0.00</span>
+                </div>
+                
+                <div class="flex justify-between py-3 border-b font-bold text-lg">
+                    <span>Total</span>
+                    <span id="total-2">0.00</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">Amount Paid</span>
+                    <span><span class="editable" contenteditable="true" id="amountPaid-2">0.00</span></span>
+                </div>
+                <div class="flex justify-between py-2 font-bold text-lg primary-text">
+                    <span>Balance Due</span>
+                    <span id="balanceDue-2">0.00</span>
+                </div>
+            </div>
+
+            <!-- Signature and Actions -->
+            <div class="mt-12 pt-4 border-t flex justify-between items-end p-6">
+                <div>
+                    <!-- <div class="h-20 border-b border-gray-400 w-48 mb-1"></div> -->
+                    <!-- <span class="text-sm text-gray-600">Authorized Signature</span> -->
+                </div>
+                <div class="no-print">
+                    <button onclick="window.print()" class="primary-bg primary-hover text-white px-4 py-2 rounded">
+                        Print/Download
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Template 3 (Sidebar) - Hidden by default -->
+    <div id="template-3" class="container mx-auto bg-white rounded-lg shadow-md overflow-hidden max-w-4xl template-3 hidden">
+        <!-- Sidebar with Color Background -->
+        <div class="sidebar-bg">
+            <div class="p-0">
+                <!-- Logo in Sidebar -->
+                <div class="mb-8 flex justify-center">
+                    <img id="logoPreview-3" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAyMDAgODAiIGZpbGw9IiNlNWU1ZTUiPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiPkxvZ28gUHJldmlldzwvdGV4dD48L3N2Zz4=" alt="" class="border border-white border-opacity-30 max-w-full w-20 rounded">
+                </div>
+                
+                <!-- Document Title -->
+                <h1 class="text-3xl font-bold text-white text-center editable" contenteditable="true" id="documentTitle-3">INVOICE</h1>
+                
+                <!-- Company Info in Sidebar -->
+                <div class="mt-8 space-y-2 text-white editable" contenteditable="true" id="companyInfo-3">
+                    <div class="text-xl font-semibold">COMPANY NAME</div>
+                    <div>Address</div>
+                   
+                    <div>(+123) 456-7890</div>
+                </div>
+                
+                <!-- Invoice Meta in Sidebar -->
+                <div class="mt-8 text-white text-opacity-90">
+                    <div class="mb-2">
+                        <div class="font-medium">#</div>
+                        <div class="editable" contenteditable="true" id="documentNumber-3">INV-001</div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="font-medium">Date</div>
+                        <div class="editable" contenteditable="true" id="invoiceDate-3"></div>
+                    </div>
+                    <div class="mb-2">
+                        <div class="font-medium">Amount Due</div>
+                        <div class="font-medium" id="amountDue-3">GHS0.00</div>
+                    </div>
+                </div>
+                
+                <!-- Logo Upload Buttons -->
+                <div class="mt-8 no-print">
+                    <input type="file" id="logoUpload-3" accept="image/*" class="hidden">
+                    <button onclick="document.getElementById('logoUpload-3').click()" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded text-sm mb-2">
+                        Upload Logo
+                    </button>
+                    <button onclick="removeLogo('logoPreview-3')" class="w-full bg-white bg-opacity-20 hover:bg-opacity-30 text-white px-3 py-2 rounded text-sm">
+                        Remove Logo
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="main-content">
+            <!-- Client Info -->
+            <div class="mb-8 editable" contenteditable="true" id="clientInfo-3">
+                <h2 class="text-xl font-semibold mb-2">To:</h2>
+                <div>Client Name<br>Client Address<br>City, Country</div>
+            </div>
+
+            <!-- Currency Selector -->
+            <div class="mb-6 no-print">
+                <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                <div class="flex">
+                    <select id="currencySelect-3" class="border rounded-l px-2 py-1 text-sm w-48">
+                        <option value="GHS">GHS (Ghanaian Cedi)</option>
+                        <option value="$">USD (US Dollar)</option>
+                        <option value="€">EUR (Euro)</option>
+                        <option value="£">GBP (British Pound)</option>
+                        <option value="¥">JPY (Japanese Yen)</option>
+                        <option value="₦">NGN (Nigerian Naira)</option>
+                        <option value="₹">INR (Indian Rupee)</option>
+                        <option value="Custom">Custom</option>
+                    </select>
+                    <input type="text" id="customCurrency-3" class="border border-l-0 rounded-r px-2 py-1 text-sm hidden w-16" placeholder="Symbol">
+                </div>
+            </div>
+
+            <!-- Invoice Items Table -->
+            <div class="mb-8 overflow-x-auto">
+                <table class="w-full border-collapse">
+                    <thead>
+                        <tr class="primary-bg text-white">
+                            <th class="py-3 px-4 text-left">Item</th>
+                            <th class="py-3 px-4 text-left">Description</th>
+                            <th class="py-3 px-4 text-left">Unit Cost</th>
+                            <th class="py-3 px-4 text-left">Quantity</th>
+                            <th class="py-3 px-4 text-left">Price</th>
+                            <th class="no-print"></th>
+                        </tr>
+                    </thead>
+                    <tbody id="itemsTable-3">
+                        <!-- Initial empty row -->
+                        <tr class="item-row border-b">
+                            <td class="py-3 px-4"><div class="flex items-center"><span class="editable" contenteditable="true">Item Name</span></div></td>
+                            <td class="py-3 px-4"><span class="editable" contenteditable="true">Item description</span></td>
+                            <td class="py-3 px-4"><span class="editable cost" contenteditable="true">0.00</span></td>
+                            <td class="py-3 px-4"><span class="editable qty" contenteditable="true">1</span></td>
+                            <td class="py-3 px-4 price">0.00</td>
+                            <td class="py-3 px-4 no-print"><button class="text-red-500 hover:text-red-700 remove-row">×</button></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <button id="addRowBtn-3" class="mt-2 primary-bg primary-hover text-white px-3 py-1 rounded text-sm no-print">+ Add Row</button>
+            </div>
+
+            <!-- Totals Section -->
+            <div class="ml-auto w-64">
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">Subtotal</span>
+                    <span id="subtotal-3">0.00</span>
+                </div>
+                
+                <div class="flex justify-between py-2 border-b">
+                    <div class="flex items-center">
+                        <span class="font-medium editable" contenteditable="true" id="taxLabel-3">TAX</span>
+                        <span class="ml-1">(<span class="editable" contenteditable="true" id="taxRate-3">15</span>%)</span>
+                        <button onclick="toggleTax('3')" class="ml-2 text-gray-500 hover:text-gray-700 text-xs no-print">×</button>
+                    </div>
+                    <span id="taxAmount-3">0.00</span>
+                </div>
+                
+                <div class="flex justify-between py-2 border-b">
+                    <div class="flex items-center">
+                        <span class="font-medium editable" contenteditable="true" id="discountLabel-3">Discount</span>
+                        <span class="ml-1">(<span class="editable" contenteditable="true" id="discountRate-3">0</span>%)</span>
+                        <button onclick="toggleDiscount('3')" class="ml-2 text-gray-500 hover:text-gray-700 text-xs no-print">×</button>
+                    </div>
+                    <span id="discountAmount-3">0.00</span>
+                </div>
+                
+                <div class="flex justify-between py-3 border-b font-bold text-lg">
+                    <span>Total</span>
+                    <span id="total-3">0.00</span>
+                </div>
+                <div class="flex justify-between py-2 border-b">
+                    <span class="font-medium">Amount Paid</span>
+                    <span><span class="editable" contenteditable="true" id="amountPaid-3">0.00</span></span>
+                </div>
+                <div class="flex justify-between py-2 font-bold text-lg primary-text">
+                    <span>Balance Due</span>
+                    <span id="balanceDue-3">0.00</span>
+                </div>
+            </div>
+
+            <!-- Signature and Actions -->
+            <div class="mt-12 pt-4 border-t flex justify-between items-end">
+                <div>
+                    <!-- <div class="h-20 border-b border-gray-400 w-48 mb-1"></div> -->
+                    <!-- <span class="text-sm text-gray-600">Authorized Signature</span> -->
+                </div>
+                <div class="no-print">
+                    <button onclick="window.print()" class="primary-bg primary-hover text-white px-4 py-2 rounded">
+                        Print/Download
+                    </button>
+                   
+                </div>
+            </div>
+        </div>
+    </div>
+
+    </div>
+    <footer class="bg-gray-800 text-white py-8 px-4 mt-3 no-print">
+        <div class="max-w-6xl mx-auto">
+          <!-- Top Section -->
+          <div class="flex flex-col md:flex-row md:justify-between md:items-center space-y-6 md:space-y-0">
+            <div>
+              <h2 class="text-xl font-bold">Quik Invoice</h2>
+              <p class="text-gray-400 mt-1 text-sm">Open source and free for everyone</p>
+            </div>
+      
+            <div class="flex space-x-6">
+                <a  href="https://github.com/ket-c" target="_blank" class="hover:text-yellow-400 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                </a>
+                <a href="https://x.com/MrKwakuAmoh" target="_blank" class="hover:text-blue-400 transition-colors">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="currentColor" class="bi bi-twitter-x" viewBox="0 0 16 16">
+                      <path d="M12.6.75h2.454l-5.36 6.142L16 15.25h-4.937l-3.867-5.07-4.425 5.07H.316l5.733-6.57L0 .75h5.063l3.495 4.633L12.601.75Zm-.86 13.028h1.36L4.323 2.145H2.865z"/>
+                    </svg>
+                </a>
+                
+              </div>
+          </div>
+      
+          <!-- Divider -->
+          <div class="border-t border-gray-700 mt-6 pt-6 flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0 text-sm">
+            <div class="text-center md:text-left">
+              Built with ❤️ from 🇬🇭 by 
+              <a href="https://1gh.co/kwaku" class="underline text-white" target="_blank">Kwaku Amoh-aboagye</a>
+            </div>
+            <div class="text-center md:text-right text-gray-400">
+              You are free to use this as you please
+            </div>
+          </div>
+        </div>
+    </footer>
+      
+    <script src="https://cdn.jsdelivr.net/npm/@simonwep/pickr/dist/pickr.min.js"></script>
+    <script>
+        // Tax and discount visibility
+        let taxVisible = {
+            '1': true,
+            '2': true,
+            '3': true
+        };
+        let discountVisible = {
+            '1': true,
+            '2': true,
+            '3': true
+        };
+        
+        // Initialize Pickr color picker
+        const pickr = Pickr.create({
+            el: '#colorPicker',
+            theme: 'classic',
+            default: '#0E336E',
+            swatches: [
+                '#0E336E', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'
+            ],
+            components: {
+                preview: true,
+                opacity: true,
+                hue: true,
+                interaction: {
+                    hex: true,
+                    rgba: true,
+                    input: true,
+                    save: true
+                }
+            }
+        });
+
+        // Set current date
+        document.addEventListener('DOMContentLoaded', function() {
+            const today = new Date();
+            const formattedDate = today.toLocaleDateString('en-US', { 
+                year: 'numeric', 
+                month: 'short', 
+                day: 'numeric' 
+            });
+            
+            // Set date for all templates
+            document.getElementById('invoiceDate').textContent = formattedDate;
+            document.getElementById('invoiceDate-2').textContent = formattedDate;
+            document.getElementById('invoiceDate-3').textContent = formattedDate;
+            
+            // Load saved data from localStorage
+            loadSavedData();
+            
+            // Initialize calculations for all templates
+            calculateTotals('1');
+            calculateTotals('2');
+            calculateTotals('3');
+            
+            // Set up event listeners for calculations for all templates
+            setupCalculationListeners('1');
+            setupCalculationListeners('2');
+            setupCalculationListeners('3');
+            
+            // Logo upload functionality for all templates
+            setupLogoUpload('logoUpload', 'logoPreview');
+            setupLogoUpload('logoUpload-2', 'logoPreview-2');
+            setupLogoUpload('logoUpload-3', 'logoPreview-3');
+            
+            // Add row buttons for all templates
+            document.getElementById('addRowBtn').addEventListener('click', function() { addNewRow('1'); });
+            document.getElementById('addRowBtn-2').addEventListener('click', function() { addNewRow('2'); });
+            document.getElementById('addRowBtn-3').addEventListener('click', function() { addNewRow('3'); });
+            
+            // Save invoice buttons for all templates
+            //document.getElementById('saveInvoice').addEventListener('click', saveAllData);
+           // document.getElementById('saveInvoice-2').addEventListener('click', saveAllData);
+           // document.getElementById('saveInvoice-3').addEventListener('click', saveAllData);
+            
+            // Currency select change for all templates
+            document.getElementById('currencySelect').addEventListener('change', function() {
+                handleCurrencyChange('1');
+            });
+            document.getElementById('currencySelect-2').addEventListener('change', function() {
+                handleCurrencyChange('2');
+            });
+            document.getElementById('currencySelect-3').addEventListener('change', function() {
+                handleCurrencyChange('3');
+            });
+            
+            // Custom currency input for all templates
+            document.getElementById('customCurrency').addEventListener('input', function() {
+                updateCurrencySymbol('1');
+                calculateTotals('1');
+                saveToLocalStorage('customCurrency', this.value);
+            });
+            document.getElementById('customCurrency-2').addEventListener('input', function() {
+                updateCurrencySymbol('2');
+                calculateTotals('2');
+                saveToLocalStorage('customCurrency-2', this.value);
+            });
+            document.getElementById('customCurrency-3').addEventListener('input', function() {
+                updateCurrencySymbol('3');
+                calculateTotals('3');
+                saveToLocalStorage('customCurrency-3', this.value);
+            });
+            
+            // Document type change
+            document.getElementById('documentType').addEventListener('change', function() {
+                updateDocumentType(this.value);
+                saveToLocalStorage('documentType', this.value);
+            });
+            
+            // Template change
+            document.getElementById('templateSelect').addEventListener('change', function() {
+                changeTemplate(this.value);
+                saveToLocalStorage('template', this.value);
+            });
+            
+            // Font change
+            document.getElementById('fontSelect').addEventListener('change', function() {
+                changeFont(this.value);
+                saveToLocalStorage('font', this.value);
+            });
+            
+            // Color picker change
+            pickr.on('change', (color) => {
+                const hexColor = color.toHEXA().toString();
+                setPrimaryColor(hexColor);
+                saveToLocalStorage('primaryColor', hexColor);
+            });
+            
+            
+            
+            // Set up mutation observer to save editable content changes
+            setupMutationObserver('1');
+            setupMutationObserver('2');
+            setupMutationObserver('3');
+        });
+        
+        function setPrimaryColor(color) {
+            document.documentElement.style.setProperty('--primary-color', color);
+            
+            // Calculate slightly darker version for hover
+            const darkerColor = shadeColor(color, -20);
+            document.documentElement.style.setProperty('--primary-hover', darkerColor);
+        }
+        
+        // Helper function to shade colors
+        function shadeColor(color, percent) {
+            let R = parseInt(color.substring(1,3), 16);
+            let G = parseInt(color.substring(3,5), 16);
+            let B = parseInt(color.substring(5,7), 16);
+
+            R = parseInt(R * (100 + percent) / 100);
+            G = parseInt(G * (100 + percent) / 100);
+            B = parseInt(B * (100 + percent) / 100);
+
+            R = (R<255)?R:255;  
+            G = (G<255)?G:255;  
+            B = (B<255)?B:255;  
+
+            const RR = ((R.toString(16).length==1)?"0"+R.toString(16):R.toString(16));
+            const GG = ((G.toString(16).length==1)?"0"+G.toString(16):G.toString(16));
+            const BB = ((B.toString(16).length==1)?"0"+B.toString(16):B.toString(16));
+
+            return "#"+RR+GG+BB;
+        }
+        
+        function setupLogoUpload(uploadId, previewId) {
+            document.getElementById(uploadId).addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(event) {
+                        document.getElementById(previewId).src = event.target.result;
+                        // Remove the no-print class if it exists
+                        document.getElementById(previewId).classList.remove('no-print');
+                        saveToLocalStorage(previewId, event.target.result);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            });
+        }
+        
+        function removeLogo(previewId) {
+            document.getElementById(previewId).src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMDAiIGhlaWdodD0iODAiIHZpZXdCb3g9IjAgMCAyMDAgODAiIGZpbGw9IiNlNWU1ZTUiPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMTQiIGZpbGw9IiM5OTkiPkxvZ28gUHJldmlldzwvdGV4dD48L3N2Zz4=";
+            localStorage.removeItem(previewId);
+            //add noprint class to the logo
+            document.getElementById(previewId).classList.add('no-print');
+            
+        }
+        
+        function getCurrencySymbol(templateNum = '1') {
+            const select = document.getElementById(`currencySelect${templateNum !== '1' ? '-' + templateNum : ''}`);
+            if (select.value === 'Custom') {
+                return document.getElementById(`customCurrency${templateNum !== '1' ? '-' + templateNum : ''}`).value || '';
+            }
+            return select.value;
+        }
+        
+        function updateCurrencySymbol(templateNum = '1') {
+            const symbol = getCurrencySymbol(templateNum);
+            // Update all displayed currency values
+            calculateTotals(templateNum);
+        }
+        
+        function handleCurrencyChange(templateNum = '1') {
+            const select = document.getElementById(`currencySelect${templateNum !== '1' ? '-' + templateNum : ''}`);
+            const customInput = document.getElementById(`customCurrency${templateNum !== '1' ? '-' + templateNum : ''}`);
+            
+            if (select.value === 'Custom') {
+                customInput.classList.remove('hidden');
+                customInput.focus();
+            } else {
+                customInput.classList.add('hidden');
+                updateCurrencySymbol(templateNum);
+                calculateTotals(templateNum);
+            }
+            saveToLocalStorage(`currency${templateNum !== '1' ? '-' + templateNum : ''}`, select.value);
+        }
+        
+        function formatCurrency(amount, templateNum = '1') {
+            const symbol = getCurrencySymbol(templateNum);
+            return symbol + amount.toFixed(2);
+        }
+        
+        function addNewRow(templateNum = '1') {
+            const table = document.getElementById(`itemsTable${templateNum !== '1' ? '-' + templateNum : ''}`);
+            const newRow = document.createElement('tr');
+            newRow.className = 'item-row border-b';
+            newRow.innerHTML = `
+                <td class="py-2 px-4 border"><div class="flex items-center"><span class="editable" contenteditable="true">Item Name</span></div></td>
+                <td class="py-2 px-4 border"><span class="editable" contenteditable="true">Item description</span></td>
+                <td class="py-2 px-4 border"><span class="editable cost" contenteditable="true">0.00</span></td>
+                <td class="py-2 px-4 border"><span class="editable qty" contenteditable="true">1</span></td>
+                <td class="py-2 px-4 border price">0.00</td>
+                <td class="py-2 px-4 border no-print"><button class="text-red-500 hover:text-red-700 remove-row">×</button></td>
+            `;
+            table.appendChild(newRow);
+            
+            // Add event listener to the remove button
+            newRow.querySelector('.remove-row').addEventListener('click', function() {
+                newRow.remove();
+                calculateTotals(templateNum);
+                saveItemsToLocalStorage(templateNum);
+            });
+            
+            // Add event listeners for calculation
+            const costInput = newRow.querySelector('.cost');
+            const qtyInput = newRow.querySelector('.qty');
+            
+            costInput.addEventListener('input', function() { calculateRowTotal(this, templateNum); });
+            qtyInput.addEventListener('input', function() { calculateRowTotal(this, templateNum); });
+            
+            // Add mutation observer for saving changes
+            observeEditableChanges(newRow, templateNum);
+            
+            // Focus on the new item name
+            newRow.querySelector('.editable').focus();
+            
+            // Save items to localStorage
+            saveItemsToLocalStorage(templateNum);
+        }
+        
+        function setupCalculationListeners(templateNum = '1') {
+            // Add event listeners to all existing rows
+            document.querySelectorAll(`#itemsTable${templateNum !== '1' ? '-' + templateNum : ''} .item-row`).forEach(row => {
+                const costInput = row.querySelector('.cost');
+                const qtyInput = row.querySelector('.qty');
+                const removeBtn = row.querySelector('.remove-row');
+                
+                costInput.addEventListener('input', function() { calculateRowTotal(this, templateNum); });
+                qtyInput.addEventListener('input', function() { calculateRowTotal(this, templateNum); });
+                
+                if (removeBtn) {
+                    removeBtn.addEventListener('click', function() {
+                        row.remove();
+                        calculateTotals(templateNum);
+                        saveItemsToLocalStorage(templateNum);
+                    });
+                }
+                
+                // Add mutation observer for saving changes
+                observeEditableChanges(row, templateNum);
+            });
+            
+            // Add event listeners for tax and discount rates
+            document.getElementById(`taxRate${templateNum !== '1' ? '-' + templateNum : ''}`).addEventListener('input', function() {
+                calculateTotals(templateNum);
+                saveToLocalStorage(`taxRate${templateNum !== '1' ? '-' + templateNum : ''}`, this.textContent);
+            });
+            
+            document.getElementById(`discountRate${templateNum !== '1' ? '-' + templateNum : ''}`).addEventListener('input', function() {
+                calculateTotals(templateNum);
+                saveToLocalStorage(`discountRate${templateNum !== '1' ? '-' + templateNum : ''}`, this.textContent);
+            });
+            
+            document.getElementById(`amountPaid${templateNum !== '1' ? '-' + templateNum : ''}`).addEventListener('input', function() {
+                calculateTotals(templateNum);
+                saveToLocalStorage(`amountPaid${templateNum !== '1' ? '-' + templateNum : ''}`, this.textContent);
+            });
+            
+            // Add event listeners for tax and discount labels
+            document.getElementById(`taxLabel${templateNum !== '1' ? '-' + templateNum : ''}`).addEventListener('input', function() {
+                saveToLocalStorage(`taxLabel${templateNum !== '1' ? '-' + templateNum : ''}`, this.textContent);
+            });
+            
+            document.getElementById(`discountLabel${templateNum !== '1' ? '-' + templateNum : ''}`).addEventListener('input', function() {
+                saveToLocalStorage(`discountLabel${templateNum !== '1' ? '-' + templateNum : ''}`, this.textContent);
+            });
+        }
+        
+        function calculateRowTotal(e, templateNum = '1') {
+            const row = e.closest ? e.closest('.item-row') : e.target.closest('.item-row');
+            const costText = row.querySelector('.cost').textContent;
+            const cost = parseFloat(costText.replace(/[^0-9.]/g, '')) || 0;
+            const qty = parseFloat(row.querySelector('.qty').textContent) || 0;
+            const total = cost * qty;
+            row.querySelector('.price').textContent = total.toFixed(2);
+            calculateTotals(templateNum);
+            saveItemsToLocalStorage(templateNum);
+        }
+        
+        function calculateTotals(templateNum = '1') {
+            const currencySymbol = getCurrencySymbol(templateNum);
+            
+            // Calculate subtotal
+            let subtotal = 0;
+            document.querySelectorAll(`#itemsTable${templateNum !== '1' ? '-' + templateNum : ''} .item-row`).forEach(row => {
+                const priceText = row.querySelector('.price').textContent;
+                subtotal += parseFloat(priceText) || 0;
+            });
+            
+            document.getElementById(`subtotal${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = subtotal.toFixed(2);
+            
+            // Calculate tax if visible
+            let taxAmount = 0;
+            if (taxVisible[templateNum]) {
+                const taxRate = parseFloat(document.getElementById(`taxRate${templateNum !== '1' ? '-' + templateNum : ''}`).textContent) || 0;
+                taxAmount = subtotal * (taxRate / 100);
+                document.getElementById(`taxAmount${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = taxAmount.toFixed(2);
+                document.getElementById(`taxAmount${templateNum !== '1' ? '-' + templateNum : ''}`).parentElement.style.display = 'flex';
+            } else {
+                document.getElementById(`taxAmount${templateNum !== '1' ? '-' + templateNum : ''}`).parentElement.style.display = 'none';
+            }
+            
+            // Calculate discount if visible
+            let discountAmount = 0;
+            if (discountVisible[templateNum]) {
+                const discountRate = parseFloat(document.getElementById(`discountRate${templateNum !== '1' ? '-' + templateNum : ''}`).textContent) || 0;
+                discountAmount = subtotal * (discountRate / 100);
+                document.getElementById(`discountAmount${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = discountAmount.toFixed(2);
+                document.getElementById(`discountAmount${templateNum !== '1' ? '-' + templateNum : ''}`).parentElement.style.display = 'flex';
+            } else {
+                document.getElementById(`discountAmount${templateNum !== '1' ? '-' + templateNum : ''}`).parentElement.style.display = 'none';
+            }
+            
+            // Calculate total
+            const total = subtotal + taxAmount - discountAmount;
+            document.getElementById(`total${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = total.toFixed(2);
+            
+            // Calculate balance due
+            const amountPaidText = document.getElementById(`amountPaid${templateNum !== '1' ? '-' + templateNum : ''}`).textContent;
+            const amountPaid = parseFloat(amountPaidText.replace(/[^0-9.]/g, '')) || 0;
+            const balanceDue = total - amountPaid;
+            
+            document.getElementById(`amountDue${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = formatCurrency(total, templateNum);
+            document.getElementById(`balanceDue${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = balanceDue.toFixed(2);
+            
+            // Update all displayed values with currency symbol
+            document.querySelectorAll(`#itemsTable${templateNum !== '1' ? '-' + templateNum : ''} .price`).forEach(el => {
+                const value = parseFloat(el.textContent) || 0;
+                el.textContent = value.toFixed(2);
+            });
+            
+            document.getElementById(`subtotal${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = subtotal.toFixed(2);
+            document.getElementById(`total${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = total.toFixed(2);
+            document.getElementById(`balanceDue${templateNum !== '1' ? '-' + templateNum : ''}`).textContent = balanceDue.toFixed(2);
+        }
+        
+        function toggleTax(templateNum = '1') {
+            taxVisible[templateNum] = !taxVisible[templateNum];
+            calculateTotals(templateNum);
+            saveToLocalStorage(`taxVisible${templateNum !== '1' ? '-' + templateNum : ''}`, taxVisible[templateNum]);
+        }
+        
+        function toggleDiscount(templateNum = '1') {
+            discountVisible[templateNum] = !discountVisible[templateNum];
+            calculateTotals(templateNum);
+            saveToLocalStorage(`discountVisible${templateNum !== '1' ? '-' + templateNum : ''}`, discountVisible[templateNum]);
+        }
+        
+        function updateDocumentType(type) {
+            // Update all templates
+            for (let i = 1; i <= 3; i++) {
+                const title = document.getElementById(`documentTitle${i !== 1 ? '-' + i : ''}`);
+                const numberField = document.getElementById(`documentNumber${i !== 1 ? '-' + i : ''}`);
+                
+                switch(type) {
+                    case 'RECEIPT':
+                        title.textContent = 'RECEIPT';
+                        if (!numberField.textContent.includes('REC')) {
+                            numberField.textContent = 'REC-' + numberField.textContent.split('-')[1];
+                        }
+                        break;
+                    case 'QUOTE':
+                        title.textContent = 'QUOTE';
+                        if (!numberField.textContent.includes('QUO')) {
+                            numberField.textContent = 'QUO-' + numberField.textContent.split('-')[1];
+                        }
+                        break;
+                    default:
+                        title.textContent = 'INVOICE';
+                        if (!numberField.textContent.includes('INV')) {
+                            numberField.textContent = 'INV-' + numberField.textContent.split('-')[1];
+                        }
+                }
+            }
+        }
+        
+        function changeTemplate(template) {
+            // Hide all templates
+            document.getElementById('invoiceContainer').classList.add('hidden');
+            document.getElementById('template-2').classList.add('hidden');
+            document.getElementById('template-3').classList.add('hidden');
+            
+            // Show selected template
+            if (template === 'template-1') {
+                document.getElementById('invoiceContainer').classList.remove('hidden');
+            } else if (template === 'template-2') {
+                document.getElementById('template-2').classList.remove('hidden');
+            } else if (template === 'template-3') {
+                document.getElementById('template-3').classList.remove('hidden');
+            }
+        }
+        
+        function changeFont(font) {
+            document.documentElement.style.setProperty('--font-family', font);
+        }
+        
+        // LocalStorage functions
+        function saveToLocalStorage(key, value) {
+            localStorage.setItem('invoice_' + key, value);
+        }
+        
+        function getFromLocalStorage(key) {
+            return localStorage.getItem('invoice_' + key);
+        }
+        
+        function saveItemsToLocalStorage() {
+            const items = [];
+            document.querySelectorAll(`#itemsTable .item-row`).forEach(row => {
+                items.push({
+                    name: row.querySelector('td:nth-child(1) .editable').textContent,
+                    description: row.querySelector('td:nth-child(2) .editable').textContent,
+                    cost: row.querySelector('.cost').textContent,
+                    qty: row.querySelector('.qty').textContent,
+                    price: row.querySelector('.price').textContent
+                });
+            });
+            saveToLocalStorage('items', JSON.stringify(items));
+        }
+        
+        function saveAllData() {
+            const editableElements = document.querySelectorAll(`[contenteditable="true"]`);
+            editableElements.forEach(el => {
+                const id = el.id || el.getAttribute('data-save-id');
+                if (id) {
+                    saveToLocalStorage(id, el.innerHTML);
+                }
+            });
+        
+            saveToLocalStorage('currency', document.getElementById(`currencySelect`).value);
+            saveToLocalStorage('documentType', document.getElementById('documentType').value);
+            saveItemsToLocalStorage();
+        
+            saveToLocalStorage('template', document.getElementById('templateSelect').value);
+            saveToLocalStorage('font', document.getElementById('fontSelect').value);
+            saveToLocalStorage('taxVisible', JSON.stringify(taxVisible));
+            saveToLocalStorage('discountVisible', JSON.stringify(discountVisible));
+            
+        }
+        
+        function loadSavedData() {
+            const savedColor = getFromLocalStorage('primaryColor') || '#0E336E';
+            setPrimaryColor(savedColor);
+            pickr.setColor(savedColor);
+        
+            const savedLogo = getFromLocalStorage('logoPreview');
+            if (savedLogo) {
+                for (let i = 1; i <= 3; i++) {
+                    document.getElementById(`logoPreview${i !== 1 ? '-' + i : ''}`).src = savedLogo;
+                }
+            }
+        
+            const savedCurrency = getFromLocalStorage('currency');
+            if (savedCurrency) {
+                for (let i = 1; i <= 3; i++) {
+                    const suffix = i !== 1 ? '-' + i : '';
+                    document.getElementById(`currencySelect${suffix}`).value = savedCurrency;
+                    if (savedCurrency === 'Custom') {
+                        document.getElementById(`customCurrency${suffix}`).classList.remove('hidden');
+                        const customCurrency = getFromLocalStorage(`customCurrency`);
+                        if (customCurrency) {
+                            document.getElementById(`customCurrency${suffix}`).value = customCurrency;
+                        }
+                    }
+                    updateCurrencySymbol(i.toString());
+                }
+            }
+        
+            const savedDocType = getFromLocalStorage('documentType');
+            if (savedDocType) {
+                document.getElementById('documentType').value = savedDocType;
+                updateDocumentType(savedDocType);
+            }
+        
+            const savedTemplate = getFromLocalStorage('template');
+            if (savedTemplate) {
+                document.getElementById('templateSelect').value = savedTemplate;
+                changeTemplate(savedTemplate);
+            }
+        
+            const savedFont = getFromLocalStorage('font');
+            if (savedFont) {
+                document.getElementById('fontSelect').value = savedFont;
+                changeFont(savedFont);
+            }
+        
+            const savedTaxVisible = getFromLocalStorage('taxVisible');
+            if (savedTaxVisible) {
+                taxVisible = JSON.parse(savedTaxVisible);
+            }
+        
+            const savedDiscountVisible = getFromLocalStorage('discountVisible');
+            if (savedDiscountVisible) {
+                discountVisible = JSON.parse(savedDiscountVisible);
+            }
+        
+            // Restore contenteditable fields
+            const editableElements = document.querySelectorAll(`[contenteditable="true"]`);
+            editableElements.forEach(el => {
+                const id = el.id || el.getAttribute('data-save-id');
+                if (id) {
+                    const savedValue = getFromLocalStorage(id);
+                    if (savedValue) {
+                        el.innerHTML = savedValue;
+                    }
+                }
+            });
+        
+            // Load shared item data into all 3 templates
+            const savedItems = getFromLocalStorage('items');
+            if (savedItems) {
+                try {
+                    const items = JSON.parse(savedItems);
+                    for (let i = 1; i <= 3; i++) {
+                        const suffix = i !== 1 ? '-' + i : '';
+                        const table = document.getElementById(`itemsTable${suffix}`);
+                        while (table.rows.length > 1) table.deleteRow(1);
+        
+                        if (items.length > 0) {
+                            const firstRow = table.rows[0];
+                            firstRow.querySelector('td:nth-child(1) .editable').innerHTML = items[0].name || 'Item Name';
+                            firstRow.querySelector('td:nth-child(2) .editable').innerHTML = items[0].description || 'Item description';
+                            firstRow.querySelector('.cost').innerHTML = items[0].cost || '0.00';
+                            firstRow.querySelector('.qty').innerHTML = items[0].qty || '1';
+                            firstRow.querySelector('.price').innerHTML = items[0].price || '0.00';
+                        }
+        
+                        for (let j = 1; j < items.length; j++) {
+                            const newRow = document.createElement('tr');
+                            newRow.className = 'item-row border-b';
+                            newRow.innerHTML = `
+                                <td class="py-2 px-4 border"><div class="flex items-center"><span class="editable" contenteditable="true">${items[j].name || 'Item Name'}</span></div></td>
+                                <td class="py-2 px-4 border"><span class="editable" contenteditable="true">${items[j].description || 'Item description'}</span></td>
+                                <td class="py-2 px-4 border"><span class="editable cost" contenteditable="true">${items[j].cost || '0.00'}</span></td>
+                                <td class="py-2 px-4 border"><span class="editable qty" contenteditable="true">${items[j].qty || '1'}</span></td>
+                                <td class="py-2 px-4 border price">${items[j].price || '0.00'}</td>
+                                <td class="py-2 px-4 border no-print"><button class="text-red-500 hover:text-red-700 remove-row">×</button></td>
+                            `;
+                            table.appendChild(newRow);
+        
+                            const costInput = newRow.querySelector('.cost');
+                            const qtyInput = newRow.querySelector('.qty');
+                            const removeBtn = newRow.querySelector('.remove-row');
+        
+                            costInput.addEventListener('input', () => calculateRowTotal(costInput, i.toString()));
+                            qtyInput.addEventListener('input', () => calculateRowTotal(qtyInput, i.toString()));
+        
+                            if (removeBtn) {
+                                removeBtn.addEventListener('click', () => {
+                                    newRow.remove();
+                                    calculateTotals(i.toString());
+                                    saveItemsToLocalStorage();
+                                });
+                            }
+                        }
+        
+                        calculateTotals(i.toString());
+                    }
+                } catch (e) {
+                    console.error('Error loading shared items:', e);
+                }
+            }
+        }
+        
+        function setupMutationObserver(templateNum = '1') {
+            // Set up mutation observer for editable content changes
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                        const target = mutation.target;
+                        if (target.hasAttribute('contenteditable')) {
+                            const id = target.id || target.getAttribute('data-save-id');
+                            if (id) {
+                                saveToLocalStorage(id, target.textContent);
+                            }
+                        }
+                    }
+                });
+            });
+            
+            // Observe all editable elements in the template
+            const templateId = templateNum === '1' ? 'invoiceContainer' : 'template-' + templateNum;
+            document.querySelectorAll(`#${templateId} [contenteditable="true"]`).forEach(el => {
+                observer.observe(el, {
+                    characterData: true,
+                    childList: true,
+                    subtree: true
+                });
+            });
+        }
+        
+        function observeEditableChanges(row, templateNum = '1') {
+            const observer = new MutationObserver(function(mutations) {
+                mutations.forEach(function(mutation) {
+                    if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                        saveItemsToLocalStorage(templateNum);
+                    }
+                });
+            });
+            
+            // Observe all editable cells in the row
+            row.querySelectorAll('[contenteditable="true"]').forEach(el => {
+                observer.observe(el, {
+                    characterData: true,
+                    childList: true,
+                    subtree: true
+                });
+            });
+        }
+
+
+        //save all on every events
+        document.addEventListener("DOMContentLoaded", function () {
+          
+            const events = [
+              "click",
+              "keydown",
+              "keyup",
+              "scroll",
+              "mousemove",
+              "touchstart",
+              "touchmove",
+              "touchend",
+              "change",
+              "input"
+            ];
+          
+            events.forEach(event => {
+              window.addEventListener(event, saveAllData, { passive: true });
+            });
+          });
+          
+
+          //reset all data
+            document.getElementById('resetAll').addEventListener('click', function() {
+                // put confirmation here using sweetalert2
+                Swal.fire({
+                    title: 'Are you sure?',
+                    text: "This will reset everything to default!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Yes, reset it!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        Swal.fire({
+                            title: 'Resetting...',
+                            text: 'Please wait while we reset your data.',
+                            allowOutsideClick: false,
+                            allowEscapeKey: false,
+                            showConfirmButton: false,
+                            willOpen: () => {
+                                Swal.showLoading();
+                            }
+                        });
+                        setTimeout(() => {
+                            localStorage.clear();
+                            location.reload();
+                        }, 1500);
+                    }
+                });    
+
+               
+                
+            });
+    </script>
+</body>
+</html>
