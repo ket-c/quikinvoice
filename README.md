@@ -11,7 +11,7 @@ Create professional **invoices**, **receipts**, and **quotes** in seconds — no
 
 - ⚡ **Instant** PDF export
 - 🖼️ **Multiple professional templates**
-- 📝 Fully **customizable fields**
+- 📝 Fully **customizable fields & colors**
 - 💾 **Auto-saves** your data — no lost progress
 - 🧾 Supports **Invoices**, **Receipts**, and **Quotes**
 - 🖨️ Clean, print-ready layout
