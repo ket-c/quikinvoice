@@ -21,10 +21,10 @@ Create professional **invoices**, **receipts**, and **quotes** in seconds — no
 
 ## 💡 Use Cases
 
+- Anyone who wants **no-login, no-subscription** billing tools
 - Freelancers and consultants sending quick invoices
 - Small businesses needing simple receipts
 - Startups quoting without the bloat
-- Anyone who wants **no-login, no-subscription** billing tools
 
 ---
 
