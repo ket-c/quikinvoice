@@ -3,7 +3,7 @@
 **Free, open-source & beautifully simple**  
 Create professional **invoices**, **receipts**, and **quotes** in seconds — no sign-up, no fuss.
 
-[![Live Demo](https://img.shields.io/badge/%F0%9F%9A%80%20Live%20Demo-quikinvoice-blue?style=for-the-badge)](https://ket-c.github.io/quikinvoice/)
+[![Live App](https://img.shields.io/badge/%F0%9F%9A%80%20Live%20Demo-quikinvoice-blue?style=for-the-badge)](https://ket-c.github.io/quikinvoice/)
 
 ---
 
@@ -28,7 +28,7 @@ Create professional **invoices**, **receipts**, and **quotes** in seconds — no
 
 ---
 
-## 🧪 Live Demo
+## 🧪 Live App
 
 > Try it instantly, no sign-up:  
 > 🌐 [**ket-c.github.io/quikinvoice**](https://ket-c.github.io/quikinvoice/)
